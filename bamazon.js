@@ -34,30 +34,42 @@ connection.query('SELECT id, product_name, price FROM products', function (error
 	for (var i = 0; i < results.length; i++) {
 	console.log("ID: ".bold + results[i].id, "PRODUCT: ".bold + results[i].product_name, "PRICE: ".bold + results[i].price);
 	}
-	inquirer.prompt([
-	{type: "input",
-	  name: "product_id",
-	  message: "Enter the id of the product you would like to buy."}
-	]).then(function(data){
-		var product = data.product_id;
 
-		
-			inquirer.prompt([
-			{type: "input",
-			  name: "beer_id",
-			  message: "Put the id of the beer that you want."}
-			]).then(function(data){
-				//do an insert into mysql 
-				connection.query('INSERT into dranken_beers SET ?', {
-					beer_id : data.beer_id,
-					dranker_id : dranker
-				}, function (error, results, fields) {
-					console.log('insert complete')
-				});
+	inquirer.prompt([{
+		type: "input",
+	  	name: "product_id",
+	  	message: "What is the ID of the product you would like to buy?",
+	  	validate: function(value) {
+      	if (isNaN(value) === false) {
+        return true;
+      	}
+      	return false;
+  	  	}
+
+	  	}, {
+	 
+		type: "input",
+		name: "purchase_quant",
+		message: "How many would you like to purchase?",
+		validate: function(value) {
+      	if (isNaN(value) === false) {
+        return true;
+      	}
+      	return false;
+  	  	}
+  		}]).then(function(answer) {
+  			var pid = product_id;
+  			var quant = purchase_quant;
+				// connection.query('INSERT into dranken_beers SET ?', {
+				// 	beer_id : data.beer_id,
+				// 	dranker_id : dranker
+				// }, function (error, results, fields) {
+				// 	console.log('insert complete')
+				// });
 			});
 		});
 
-});
+
 
 
 // function insertIntoTable(name, type, abv, table){
