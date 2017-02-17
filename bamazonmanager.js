@@ -96,6 +96,7 @@ function displayMenu() {
 								if (error) {
 									console.log("An error occured while updating products table");
 								};
+								console.log("======|| QUANTITY UPDATED ||======".bold.green);
 								restart();
 							})
 					})
@@ -156,13 +157,14 @@ function displayMenu() {
 
 						connection.query("INSERT INTO products (product_name, department_id, price, stock_quantity)" + 
 							" VALUE ('" + item + "', " + dept + ", " + price + ", " + quant + ")");
-						console.log("\nITEM ADDED\n");
+						
 						connection.query("SELECT * FROM products", function (error, results) {
 							for (var i = 0; i < results.length; i++) {
 								console.log("ID: ".bold + results[i].id + " Product: ".bold + results[i].product_name + 
 									" Department: ".bold + results[i].department_id + " Price: ".bold + results[i].price + 
 									" Quantity: ".bold + results[i].stock_quantity);
 							};
+							console.log("======|| ^^^^ITEM ADDED^^^^ ||======".bold.green);
 							restart();
 						});
 					});
