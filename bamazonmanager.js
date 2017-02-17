@@ -12,7 +12,7 @@ var connection = mysql.createConnection({
 connection.connect();
 
 function displayMenu() {
-	console.log("Menu Options:".bold.blue);
+	console.log("Menu Options (Manager View):".bold.blue);
 	console.log("1.".red + "View Products for Sale".bold);
 	console.log("2.".red + "View Low Inventory".bold);
 	console.log("3.".red + "Add to Inventory".bold);
