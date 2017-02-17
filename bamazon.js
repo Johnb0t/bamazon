@@ -9,9 +9,14 @@ step 7 run it
 step 8 if it breaks change it until it works
 */
 
+
+//require packages
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 var colors = require('colors');
+
+//global variables
+var order = [];
 
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -22,14 +27,9 @@ var connection = mysql.createConnection({
 
 connection.connect();
 
-// function selectTable(table){
-// 	connection.query('SELECT * from' + table, function (error, results, fields) {
-// 	  if (error) throw error;
-// 	  console.log(results);
-// 	});
-// }
+function startOrder() {
 
-connection.query('SELECT id, product_name, price FROM products', function (error, results, fields)
+connection.query('SELECT id, product_name, price, stock_quantity FROM products', function (error, results, fields)
 {
 	for (var i = 0; i < results.length; i++) {
 	console.log("ID: ".bold + results[i].id, "PRODUCT: ".bold + results[i].product_name, "PRICE: ".bold + results[i].price);
@@ -40,70 +40,90 @@ connection.query('SELECT id, product_name, price FROM products', function (error
 	  	name: "product_id",
 	  	message: "What is the ID of the product you would like to buy?",
 	  	validate: function(value) {
-      	if (isNaN(value) === false) {
+      	if (isNaN(value) === false && value > 0 && value < results.length + 1) {
         return true;
       	}
       	return false;
   	  	}
-
-	  	}, {
+  	  
+		}, {
 	 
 		type: "input",
 		name: "purchase_quant",
 		message: "How many would you like to purchase?",
 		validate: function(value) {
-      	if (isNaN(value) === false) {
+      	if (isNaN(value) === false && value > 0) {
         return true;
       	}
       	return false;
   	  	}
-  		}]).then(function(answer) {
-  			var pid = product_id;
-  			var quant = purchase_quant;
-				// connection.query('INSERT into dranken_beers SET ?', {
-				// 	beer_id : data.beer_id,
-				// 	dranker_id : dranker
-				// }, function (error, results, fields) {
-				// 	console.log('insert complete')
-				// });
-			});
+  		}]).then(function(data) {
+  			var item = {};
+  			var id = data.product_id;
+  			var quant = data.purchase_quant;
+  			var item_name = results[id - 1].product_name;
+  			var item_price = results[id - 1].price;
+/////breaking here
+  			if (results[id - 1].stock_quantity - quant < 0 ) {
+  				console.log("Sorry, we don't have that much in stock.".bold);
+			} else {
+				connection.query("UPDATE products SET stock_quantity = (stock_quantity - " + quant + ") WHERE id = " + id, function (error, results) {
+					if (error) {
+						return console.log("There was an error updating the products table.");
+					}
+				});
+				connection.query("INSERT INTO sales (product_id, quantity_purchased) VALUES (" + id + ", " + quant + ")", function (error, results) {
+					if (error) {
+						return console.log("There was an error updating the products table.");
+					}
+				});
+				item["item"] = item_name;
+				item["price"] = item_price;
+				item["quantity"] = quant;
+
+				order.push(item);
+
+				shopMore();
+			};
 		});
+	});
+}	
+
+function shopMore() {
+	inquirer.prompt([{
+		type: "confirm",
+	  	name: "shopMore",
+	  	message: "Do you want to shop more?".bold,
+	  	}]).then(function(data) {
+	  		if(!data.shopMore){
+	  			checkOut();
+	  		} else {
+	  			startOrder();
+	  		};
+	  	});
+};
+
+//take order and loop through that object
+//do math and give total price
+
+
+function checkOut(){
+	var total = 0;
+	console.log("Your Purchase:".bold);
+	for (var i = 0; i < order.length; i++){
+		console.log("Product: ".bold + order[i].item + " Quantity: ".bold + order[i].quantity + " Price: ".bold + order[i].price);
+		total += order[i].price * order[i].quantity;
+	};
+	console.log("Total: ".bold + total);
+	connection.end();
+}
+
+
+startOrder();
 
 
 
 
-// function insertIntoTable(name, type, abv, table){
-//   connection.query("INSERT INTO " + table + " SET ?", {
-//       name: name,
-//       type: type,
-//       abv: abv
-//     }, function(err, res) { console.log('completed!')});
-// }
-
-// function deleteFromTable(id, table){
-// 	connection.query("DELETE FROM " + table + " WHERE ?", {
-// 	    id: id
-// 	  }, function(err, res) { 
-// 	  	if (err) return console.log(err);
-// 	  	console.log('delete completed!')
-// 	  });
-// }
-
-// //write update function
-// function updateTable(id, table){
-// 	connection.query("UPDATE " + table + " SET ? WHERE ?", [{
-// 		name : 'bruno beer'
-// 	  }, {
-// 	  	id : id
-// 	  }], function(err, res) { 
-// 	  	if (err) return console.log(err);
-// 	  	console.log('update completed!')
-// 	  });
-// }
-
-// //write delete function
 
 
-// // insertIntoTable('beer', 'i dont know beer', 100, 'beers');
-// // deleteFromTable(7, 'beers');
-// updateTable(1, 'beers');
+
